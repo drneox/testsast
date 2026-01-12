@@ -5,6 +5,7 @@ const { exec } = require('child_process');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const vulnerableRoutes = require('./vulnerableRoutes');
 
 const app = express();
 const PORT = 3000;
@@ -19,6 +20,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
+
+// Usar rutas vulnerables adicionales
+app.use('/api', vulnerableRoutes);
 
 // Inicializar base de datos
 const db = new sqlite3.Database(':memory:');
@@ -47,6 +51,19 @@ app.post('/login', (req, res) => {
         } else {
             res.json({ success: false, message: "Credenciales inválidas" });
         }
+    });
+});
+
+// VULNERABILIDAD: SQL Injection adicional con exec
+app.get('/user/:id', (req, res) => {
+    const userId = req.params.id;
+    // SQL injection vulnerable
+    db.all("SELECT * FROM users WHERE id = " + userId, (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ users: rows });
     });
 });
 
@@ -80,6 +97,19 @@ app.post('/ping', (req, res) => {
             return;
         }
         res.json({ output: stdout });
+    });
+});
+
+// VULNERABILIDAD: Command Injection adicional
+app.get('/system-info', (req, res) => {
+    const command = req.query.cmd;
+    // Command injection directa
+    exec(command, (error, stdout, stderr) => {
+        if (error) {
+            res.status(500).json({ error: error.message });
+            return;
+        }
+        res.json({ result: stdout });
     });
 });
 
@@ -188,11 +218,13 @@ app.get('/', (req, res) => {
         <body>
             <h1>Aplicación con Vulnerabilidades Conocidas</h1>
             <p><strong>ADVERTENCIA:</strong> Esta aplicación contiene vulnerabilidades intencionales para propósitos educativos.</p>
-            <h2>Endpoints disponibles:</h2>
+            <h2>Endpoints principales:</h2>
             <ul>
                 <li>POST /login - SQL Injection</li>
+                <li>GET /user/:id - SQL Injection (numeric)</li>
                 <li>GET /search?q= - XSS</li>
                 <li>POST /ping - Command Injection</li>
+                <li>GET /system-info?cmd= - Command Injection directo</li>
                 <li>GET /download?file= - Path Traversal</li>
                 <li>POST /encrypt - Weak Cryptography</li>
                 <li>POST /deserialize - Insecure Deserialization</li>
@@ -200,6 +232,15 @@ app.get('/', (req, res) => {
                 <li>GET /admin/users - Missing Authentication</li>
                 <li>POST /validate-email - ReDoS</li>
                 <li>GET /generate-token - Insecure Random</li>
+            </ul>
+            <h2>Endpoints adicionales (bajo /api):</h2>
+            <ul>
+                <li>POST /api/set-config - Prototype Pollution</li>
+                <li>GET /api/redirect?url= - Open Redirect</li>
+                <li>GET /api/fetch-url?url= - SSRF</li>
+                <li>POST /api/save-file - Arbitrary File Write</li>
+                <li>GET /api/list-dir?dir= - Directory Listing</li>
+                <li>GET /api/debug - Information Disclosure</li>
             </ul>
         </body>
         </html>
