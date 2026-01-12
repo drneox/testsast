@@ -8,6 +8,44 @@ Esta aplicación contiene **vulnerabilidades de seguridad intencionales** con fi
 ## Descripción
 Esta es una aplicación Node.js/Express creada específicamente para demostrar vulnerabilidades comunes que pueden ser detectadas por herramientas de análisis de seguridad como GitHub Advanced Security (CodeQL) y Dependabot.
 
+## Configuración de GitHub Advanced Security
+
+Este repositorio incluye configuraciones para GitHub Advanced Security:
+
+### 1. Habilitar GitHub Advanced Security
+Para repositorios privados, ve a:
+- `Settings` → `Security` → `Code security and analysis`
+- Habilita `GitHub Advanced Security`
+- Habilita `CodeQL analysis`
+- Habilita `Dependabot alerts`
+- Habilita `Secret scanning`
+
+### 2. CodeQL Scanning
+El archivo `.github/workflows/codeql.yml` configura el escaneo automático de código:
+- Se ejecuta en cada push y pull request
+- Se ejecuta semanalmente de forma automática
+- Usa las consultas `security-extended` y `security-and-quality`
+
+Para ver los resultados:
+- Ve a la pestaña `Security` → `Code scanning alerts`
+
+### 3. Dependabot
+El archivo `.github/dependabot.yml` configura el escaneo de dependencias:
+- Escanea semanalmente las dependencias npm
+- Crea pull requests automáticos para actualizaciones de seguridad
+
+Para ver las alertas:
+- Ve a la pestaña `Security` → `Dependabot alerts`
+
+### 4. Secret Scanning
+Secret scanning está habilitado automáticamente y detecta:
+- API keys
+- Tokens de acceso
+- Credenciales hardcodeadas
+
+Para ver las alertas:
+- Ve a la pestaña `Security` → `Secret scanning alerts`
+
 ## Requisitos
 - Node.js 14 o superior
 - npm
